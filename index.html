@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html ng-app="transport-pass-system">
+
+<head>
+
+    <link rel="stylesheet" href="styles/bootstrap.css">
+    <link rel="stylesheet" href="styles/style.css">
+    <script src="vendor/jquery-1.11.1.min.js"></script>
+    <script src="vendor/angular.min.js"></script>
+    <script src="vendor/bootstrap.min.js"></script>
+    <script src="app/transportPassAppController.js"></script>
+    <script src="app/appDataService.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Commuter Pass System</h2>
+        </div>
+        <div class="section">
+            <!--Getting all available using this app by calling the function in initialization -->
+            <div ng-controller="transportPassAppController as tpac" ng-init="tpac.getActions()">
+                <div class="row">
+                    <div ng-repeat="action in tpac.passActions" class="col-md-4">
+                        <div>
+                            <button class="btn btn-primary" ng-click="tpac.takeAction(action)">
+                                <h2>{{action}}</h2></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="row forms">
+                    <!--Sections for each of listed action -->
+                    <div style="float:left" ng-if="tpac.buyPassSection" class="col-md-12">
+                        <div class="form-group">
+                            <label>Select Use Type:</label>
+                            <select class="form-control" ng-model="tpac.selectedUserType" ng-change="tpac.getDiscount()">
+                                <option ng-repeat="userType in tpac.userTypes" value="{{userType}}">{{userType}}</option>
+                            </select>
+                        </div>
+                        <div ng-if="!tpac.isTWorker">
+                            <div class="form-group">
+                                <label>Select Mode of Transport:</label>
+                                <select class="form-control" ng-model="tpac.selectedMode" ng-change="tpac.getDiscount()">
+                                    <option ng-repeat="mode in tpac.transportData" value="{{mode.type}}">{{mode.type}}</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Select Pass Type:</label>
+                                <select class="form-control" ng-model="tpac.selectedPassType" ng-change="tpac.getDiscount()">
+                                    <option ng-repeat="passType in tpac.passTypes" value="{{passType}}">{{passType}}</option>
+                                </select>
+                            </div>
+                            <div ng-if="!tpac.isMonthly">
+
+                                <div class="form-group">
+                                    <label>Enter Amount to be added on Pass: $</label>
+                                    <input class="form-control" type="text" ng-model="tpac.passCost" value="" ng-change=tpac.checkCost()>
+                                </div>
+                            </div>
+                            <div ng-if="tpac.isMonthly">
+                                <div class="form-group">
+                                    <label>Monthly Pass Cost : $</label>
+                                    <input class="form-control" type="text" value="{{tpac.passCost}}" disabled>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <button class="btn btn-default" ng-if="tpac.passBtn" ng-click="tpac.generatePass()">Get Pass</button>
+                        </div>
+                    </div>
+                    <div style="float:left" ng-if="tpac.usePassSection" class="col-md-12">
+
+                        <div class="form-group">
+                            <label>Select Mode of Transport:</label>
+                            <select class="form-control" ng-model="tpac.selectedMode">
+                                <option ng-repeat="mode in tpac.transportData" value="{{mode.type}}">{{mode.type}}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Swipe your Card (Enter Your Pass Number)</label>
+                            <input class="form-control" type="text" ng-model="tpac.passID" value="" ng-change="tpac.checkPassID()">
+                        </div>
+                        <button class="btn btn-default" ng-if="tpac.passInfoBtn" ng-click=tpac.swipeCard()>Swipe it</button>
+                        <div ng-if="tpac.returnMsg.swipeMsg.length > 0  ">
+                            <p class="alert alert-success" ng-if=tpac.returnMsg.successFlag><strong>{{tpac.returnMsg.swipeMsg}}</strong></p>
+                            <p class="alert alert-danger" ng-if=!tpac.returnMsg.successFlag><strong>{{tpac.returnMsg.swipeMsg}}</strong></p>
+                        </div>
+                    </div>
+                     <div style="float:left" ng-if="tpac.checkBalanceSection" class="col-md-12">
+                        <div class="form-group">
+                            <label>Enter Your Pass Number</label>
+                            <input class="form-control" type="text" ng-model="tpac.passID" value="" ng-change="tpac.checkPassID()">
+                        </div>
+                        <button class="btn btn-default" ng-if="tpac.passInfoBtn" ng-click=tpac.getBalance()>Get Balance</button>
+                    </div>
+                    <div ng-if="tpac.passGenerated" class="col-md-12">
+                        <h3> Commuter Pass </h3>
+                        <div class="form-group">
+                            <label>Pass Number : {{tpac.newPass.passNumber}}</label><br>
+                            <label>UserType : {{tpac.newPass.userType}}</label><br>
+                            <label ng-if="tpac.newPass.type !== undefined">Pass Type : {{tpac.newPass.type}}</label><br>
+                            <label ng-if="tpac.newPass.transportMode !== undefined">Primary Transport Mode: {{tpac.newPass.transportMode}}</label><br>
+                            <label ng-if="tpac.newPass.startDate !== undefined">Start Date : {{tpac.newPass.startDate}}</label><br>
+                            <label ng-if="tpac.newPass.endDate !== undefined">End Date : {{tpac.newPass.endDate}}</label><br>
+                            <label ng-if="tpac.newPass.passAmount !== undefined">Pass Balance : {{tpac.newPass.passAmount}}</label><br>
+                            <label class="alert alert-warning"><strong>NOTE DOWN YOUR PASS NUMBER TO USE</strong></label>
+                        </div>
+                    </div>
+                    <p class="alert alert-danger" ng-if=tpac.noPassFlag><strong>{{tpac.noPassMsg}}</strong></p>
+                    <div class="homescreenBtn">
+                        <button ng-if="tpac.buyPassSection || tpac.usePassSection ||  tpac.checkBalanceSection" class="btn btn-primary" ng-click="tpac.init()">
+                             <h2>Home Screen</h2></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,25 @@
+body {
+    background-color:gray;
+}
+
+.header h2 {
+    text-align: center;
+} 
+.col-md-12 {
+    background-color:darkgray;
+}
+
+.section .forms{
+    padding-top: 30px;
+}
+.btn-primary {
+    width: 350px;
+}
+.homescreenBtn{
+    padding-top: 400px;
+    padding-left: 375px
+}
+.btn-default {
+    width: 200px;
+    background-color: burlywood;
+}
